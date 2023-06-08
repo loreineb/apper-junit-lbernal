@@ -17,23 +17,19 @@ public class AccountRepository {
     }
 
     public Account getAccount(String id) {
-
-        for (Account account : accounts) {
-            if (account.id().equals(id)) {
-                return account;
-            }
-        }
-
-        return null;
+        return accounts
+                .stream()
+                .filter(account -> id.equals(account.id()))
+                .findFirst()
+                .orElse(null);
     }
 
     public void deleteAccount(String id) {
-        for (Account account : accounts) {
-            if (account.id().equals(id)) {
-                accounts.remove(account);
-                return;
-            }
-        }
+        accounts
+                .stream()
+                .filter(account -> id.equals(account.id()))
+                .findFirst()
+                .ifPresent(accounts::remove);
     }
 
     public Integer getNumberOfAccounts() {
