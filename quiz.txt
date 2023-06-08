@@ -1,10 +1,10 @@
-1.
-2.
-3.
-4.
-5.
-6.
-7.
-8.
-9.
-10.
+1. unit: testing a part of the code lang or per component testing; isolated testing
+2. integrated: from the name itself, you test codes that work with each other and see if they work with each other; integrated component testing
+3. system: when you test the code as a whole already
+4. acceptance: when you ask consumers or customers to use your code na and see if gagana siya based sa business requirements, etc
+5. True
+6. Jupiter
+7. assertEquals: verifies if what is being tested is equal to the value set
+8. assertNotEquals: verifies if what is being tested is not equal to the value set
+9. assertNull: verifies if what is being tested is Null
+10. assertNotNull: verifies if what is being tested is Not Null
