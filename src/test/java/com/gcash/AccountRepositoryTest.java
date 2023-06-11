@@ -62,4 +62,14 @@ public class AccountRepositoryTest {
         //Verify
         Assertions.assertEquals(3, repository.getNumberOfAccounts());
     }
+
+    @Test
+    void successfulNoRegisteredAccount() {
+        //Setup
+        var repository = new AccountRepository();
+
+        //Kick and Verify
+        Assertions.assertTrue(repository.noRegisteredAccount());
+        //noRegisteredAccount uses isEmpty(); isEmpty() returns True if it's empty
+    }
 }
