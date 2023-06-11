@@ -35,4 +35,9 @@ public class AccountRepository {
     public Integer getNumberOfAccounts() {
         return accounts.size();
     }
+
+    // No test. Create one
+    public boolean noRegisteredAccount() {
+        return accounts.isEmpty();
+    }
 }
