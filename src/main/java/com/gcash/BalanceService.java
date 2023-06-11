@@ -37,7 +37,7 @@ public class BalanceService {
     public Double debit(String id, Double amount) {
         //debit is to bawas
         //I can just use getBalance above
-        var bal = getBalance(id);
+        var bal = getBalance(id); //do this nalang: kasi nung una I kept calling getBalance(id) each time
 
         if (bal == null) {
             return null;
