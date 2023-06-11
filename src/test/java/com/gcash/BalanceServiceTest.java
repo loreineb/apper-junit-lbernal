@@ -41,6 +41,7 @@ class BalanceServiceTest {
 
         //Kick and verify
         Assertions.assertEquals(146.8, balance.credit(id, amount));
+        //for credit counted ba if 0 yung iccredit
 
     }
 
@@ -54,6 +55,7 @@ class BalanceServiceTest {
 
         //Kick and verify
         Assertions.assertEquals(223.4, balance.transfer(from, to, amount));
+        //should a transfer of 0 be counted
     }
 
     // unsuccessful tests
@@ -103,6 +105,17 @@ class BalanceServiceTest {
         //Kick and verify
         Assertions.assertNull(balance.transfer(from, to, amount));
 
+    }
+
+    @Test
+    void transferringToSameAccount() {
+        var repo = new AccountRepository();
+        String id = repo.createAccount("Loreine", 123.4);
+        var balance = new BalanceService(repo);
+        Double amount = 1.0;
+
+        //Kick and verify
+        Assertions.assertNull(balance.transfer(id, id, amount));
     }
 
 }
