@@ -36,23 +36,41 @@ public class BalanceService {
 
     public Double debit(String id, Double amount) {
         //debit is to bawas
-        //I can just use getBalance above I think
-        if (amount <= getBalance(id)){
-            Double debitBalance = getBalance(id) - amount;
+        //I can just use getBalance above
+        var bal = getBalance(id);
+
+        if (bal == null) {
+            return null;
+            //order matters here, this if condition used to be at the bottom
+            //if nauna kasi si amount <= bal, magkakaron ng null pointer error kasi it can't compare with null
+        }
+        if (amount > 0 && amount <= bal) {
+            Double debitBalance = bal - amount;
             return debitBalance;
         }
-        return null;
+        if (amount == 0) {
+            return bal;
+        }
+        return null; //put null here pa rin just in case merong condition na di pa naiisip
 
-        //I changed from public void debit to public double debit so I can use debit in transfer
+        //I changed from public void debit to public Double debit so I can use debit in transfer
     }
 
     public Double credit(String id, Double amount) {
         //credit is to dagdag
+        var bal = getBalance(id);
+
+        if (bal == null) {
+            return null;
+        }
         if (amount > 0) {
-            Double creditBalance = getBalance(id) + amount;
+            Double creditBalance = bal + amount;
             //if I accidentally change this to getBalance(id) - amount, the tests will catch it
             //so I can mess with the code with a safeguard of sorts
             return creditBalance;
+        }
+        if (amount == 0) {
+            return bal;
         }
         return null;
     }
@@ -60,10 +78,15 @@ public class BalanceService {
     public Double transfer(String from, String to, Double amount) {
         //I'm assuming from and to here are ids
         //can reuse debit and credit here
-        if (debit(from,amount) != null) {
+
+        if (!from.equals(to) && debit(from,amount) != null) {
+            //no need to put in the if condition for transfer regarding zero values kasi debit and credit have it
             debit(from, amount);
             Double recipientBalance = credit(to, amount);
             return recipientBalance;
+        }
+        if (getBalance(from) == null || getBalance(to) == null) {
+            return null;
         }
         return null;
     }
