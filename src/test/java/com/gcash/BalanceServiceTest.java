@@ -3,14 +3,14 @@ package com.gcash;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+//import static org.junit.jupiter.api.Assertions.*;
 
 class BalanceServiceTest {
 
     //successful tests
 
     @Test
-    void successfulGetBalance() { //test case na gumagana siya fully
+    void successfulGetBalance() {
         //Setup
         var repo = new AccountRepository(); //creating an instance of AccountRepository to pasok into BalanceService
         String id = repo.createAccount("Loreine", 123.4); //creating a test account
@@ -63,7 +63,6 @@ class BalanceServiceTest {
         //Same setup as successfulGetBalance
         //Since credit and debit use getBalance, and transfer uses credit and debit, covered na
         var repo = new AccountRepository(); //creating an instance of AccountRepository to pasok into BalanceService
-        String id = repo.createAccount("Loreine", 123.4);
         String faker = "Adriana";
         var balance = new BalanceService(repo);
 

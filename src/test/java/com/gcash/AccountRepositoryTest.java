@@ -66,10 +66,10 @@ public class AccountRepositoryTest {
     @Test
     void successfulNoRegisteredAccount() {
         //Setup
-        var repository = new AccountRepository();
+        var repo = new AccountRepository();
+        //can use var instead of the whole name nalang kasi Java can infer naman
 
         //Kick and Verify
-        Assertions.assertTrue(repository.noRegisteredAccount());
-        //noRegisteredAccount uses isEmpty(); isEmpty() returns True if it's empty
+        Assertions.assertTrue(repo.noRegisteredAccount());
     }
 }
