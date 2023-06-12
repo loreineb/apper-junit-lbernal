@@ -165,7 +165,7 @@ class BalanceServiceTest {
     @Test
     void debitAmountIsBiggerThanBalance() {
         var repo = new AccountRepository();
-        String id = repo.createAccount("Loreine", 123.4); //creating a test account
+        String id = repo.createAccount("Loreine", 123.4);
         var balance = new BalanceService(repo);
         Double amount = 567.8;
 
