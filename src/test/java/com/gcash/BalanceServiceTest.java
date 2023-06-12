@@ -163,8 +163,8 @@ class BalanceServiceTest {
 
     //IV. Unsuccessful tests: other scenarios
     @Test
-    void amountIsBiggerThanBalanceDebit() {
-        var repo = new AccountRepository(); //creating an instance of AccountRepository to pasok into BalanceService
+    void debitAmountIsBiggerThanBalance() {
+        var repo = new AccountRepository();
         String id = repo.createAccount("Loreine", 123.4); //creating a test account
         var balance = new BalanceService(repo);
         Double amount = 567.8;
@@ -174,7 +174,7 @@ class BalanceServiceTest {
 
     @Test
     void transferAmountIsMoreThanBalance() {
-        var repo = new AccountRepository(); //creating an instance of AccountRepository to pasok into BalanceService
+        var repo = new AccountRepository();
         String from = repo.createAccount("Loreine", 123.4);
         String to = repo.createAccount("Adriana", 100.0);
         var balance = new BalanceService(repo);

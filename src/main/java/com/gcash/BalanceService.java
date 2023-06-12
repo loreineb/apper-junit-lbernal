@@ -8,9 +8,13 @@ public class BalanceService {
 
     public BalanceService (AccountRepository repository) {
         this.repo = repository;
-    }
+    } //assigning the repository value to this.repo
+    //para alam ng lahat ng nasa BalanceService na pag repo yung pinag-uusapan, it's referring to this instance variable
+        //so kahit magka-same name later on, alam na like "it's THIS one"
     //rather than create an instance of AccountRepository sa getBalance like what I did initially, separate mo siya
-    //para din alam ng lahat ng nasa BalanceService na pag repository yung usapan, it's referring to this one
+
+    // tldr: created a private final AccountRepository instance variable named repo for reasons like immutability/security ->
+    // assigned the repository value na pumapasok sa BalanceService to the private final repo using this.
 
     /**
      * NOTE: You are expected to use one repository instance in all methods, not one repository per method.
