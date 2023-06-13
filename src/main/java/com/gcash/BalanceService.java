@@ -1,97 +1,45 @@
 package com.gcash;
 
+import java.util.Objects;
+
 public class BalanceService {
-    private final AccountRepository repo;
-    //use private final if you want it to be immutable and cannot be accessed diretso
-    //I don't 100% get it yet, pero sabi it makes it easier to debug kasi since immutable siya, di nagbabago yung value niya
-    //since constant din yung value niya, pag pinasa-pasa na siya, there's no risk of it changing somehow on the way, I think
+    private final AccountRepository accountRepository;
 
-    public BalanceService (AccountRepository repository) {
-        this.repo = repository;
-    } //assigning the repository value to this.repo
-    //para alam ng lahat ng nasa BalanceService na pag repo yung pinag-uusapan, it's referring to this instance variable
-        //so kahit magka-same name later on, alam na like "it's THIS one"
-    //rather than create an instance of AccountRepository sa getBalance like what I did initially, separate mo siya
-
-    // tldr: created a private final AccountRepository instance variable named repo for reasons like immutability/security ->
-    // assigned the repository value na pumapasok sa BalanceService to the private final repo using this.
-
-    /**
-     * NOTE: You are expected to use one repository instance in all methods, not one repository per method.
-     *
-     */
-
-    public Double getBalance(String id) {
-        //initially:
-        // 1. I created an instance of AccountRepository here in getBalance
-        // 2. In the test, I created another instance of AccountRepository in the setup so I could create a user to get their balance
-        // 3. the test ended up failing kasi nagdodouble yung AccountRepository
-            //so what would happen is iba yung repo na ginagamit ni getBalance and the repo which I created the test user in is magkaiba
-
-        if (!id.isEmpty()) { //checking if hindi empty yung pinasok
-            Account account = repo.getAccount(id);
-            //using the existing method in AccountRepository to retrieve the account associated with the id
-            if (account != null) { //if hindi null si account, it means na may account nga na ganun with the corresponding id
-                return account.balance(); //eto na mismo yung pag get ng balance, after the two conditions have been met
-            }
-        }
-        return null;
+    public BalanceService(AccountRepository accountRepository) {
+        this.accountRepository = accountRepository;
     }
 
-    public Double debit(String id, Double amount) {
-        //debit is to bawas
-        //I can just use getBalance above
-        var bal = getBalance(id); //do this nalang: kasi nung una I kept calling getBalance(id) each time
 
-        if (bal == null) {
-            return null;
-            //order matters here, this if condition used to be at the bottom
-            //if nauna kasi si amount <= bal, magkakaron ng null pointer error kasi it can't compare with null
+    public Double getBalance(String id) throws AccountNotFoundException {
+        Account foundAccount = accountRepository.getAccount(id);
+        if (Objects.isNull(foundAccount)) {
+            throw new AccountNotFoundException("Account " + id + " not found");
         }
-        if (amount > 0 && amount <= bal) {
-            Double debitBalance = bal - amount;
-            return debitBalance;
-        }
-        if (amount == 0) {
-            return bal;
-        }
-        return null; //put null here pa rin just in case merong condition na di pa naiisip
-
-        //I changed from public void debit to public Double debit so I can use debit in transfer
+        return foundAccount.getBalance();
     }
 
-    public Double credit(String id, Double amount) {
-        //credit is to dagdag
-        var bal = getBalance(id);
+    public void debit(String id, Double amount) throws InsufficientBalanceException, AccountNotFoundException {
+        Account foundAccount = accountRepository.getAccount(id);
+        if (Objects.isNull(foundAccount)) {
+            throw new AccountNotFoundException("Account " + id + " not found");
+        }
 
-        if (bal == null) {
-            return null;
+        if (foundAccount.getBalance() >= amount) {
+            foundAccount.setBalance(foundAccount.getBalance() - amount);
+        } else {
+            throw new InsufficientBalanceException("Insufficient balance!");
         }
-        if (amount > 0) {
-            Double creditBalance = bal + amount;
-            //if I accidentally change this to getBalance(id) - amount, the tests will catch it
-            //so I can mess with the code with a safeguard of sorts
-            return creditBalance;
-        }
-        if (amount == 0) {
-            return bal;
-        }
-        return null;
     }
 
-    public Double transfer(String from, String to, Double amount) {
-        //I'm assuming from and to here are ids
-        //can reuse debit and credit here
+    public void credit(String id, Double amount) {
+        Account foundAccount = accountRepository.getAccount(id);
+        if (Objects.nonNull(foundAccount)) {
+            foundAccount.setBalance(foundAccount.getBalance() + amount);
+        }
+    }
 
-        if (!from.equals(to) && debit(from,amount) != null) {
-            //no need to put in the if condition for transfer regarding zero values kasi debit and credit have it
-            debit(from, amount);
-            Double recipientBalance = credit(to, amount);
-            return recipientBalance;
-        }
-        if (getBalance(from) == null || getBalance(to) == null) {
-            return null;
-        }
-        return null;
+    public void transfer(String from, String to, Double amount) throws InsufficientBalanceException, AccountNotFoundException {
+        debit(from, amount);
+        credit(to, amount);
     }
 }

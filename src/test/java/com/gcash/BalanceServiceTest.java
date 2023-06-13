@@ -1,196 +1,101 @@
 package com.gcash;
 
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-//import static org.junit.jupiter.api.Assertions.*;
+public class BalanceServiceTest {
 
-class BalanceServiceTest {
+    AccountRepository accountRepository;
+    BalanceService balanceService;
 
-    //Successful tests
+    @BeforeEach
+    void setup() {
+        System.out.println("Setting up...");
+        accountRepository = new AccountRepository();
+        balanceService = new BalanceService(accountRepository);
+    }
 
-    @Test
-    void successfulGetBalance() {
-        //Setup
-        var repo = new AccountRepository(); //creating an instance of AccountRepository to pasok into BalanceService
-        String id = repo.createAccount("Loreine", 123.4); //creating a test account
-        var balance = new BalanceService(repo);
+    @AfterEach
+    void cleanup() {
+        System.out.println("Cleaning up...");
+        accountRepository.deleteAllAccounts();
+    }
 
-        //Kick and verify
-        Assertions.assertEquals(123.4, balance.getBalance(id));
+    @BeforeAll
+    static void globalSetup() {
+        System.out.println("Global setup");
+    }
+
+    @AfterAll
+    static void globalCleaning() {
+        System.out.println("Global cleaning");
     }
 
     @Test
-    void successfulDebit() {
-        var repo = new AccountRepository();
-        String id = repo.createAccount("Loreine", 123.4);
-        var balance = new BalanceService(repo);
-        Double amount = 123.4;
+    void testGetBalance() throws AccountNotFoundException {
+        double initialBalance = 1000.0;
+        String id = accountRepository.createAccount("Orvyl", initialBalance);
 
-        Assertions.assertEquals(0, balance.debit(id, amount));
+        Double balance = balanceService.getBalance(id);
+
+        Assertions.assertEquals(initialBalance, balance);
     }
 
     @Test
-    void successfulCredit() {
-        var repo = new AccountRepository();
-        String id = repo.createAccount("Loreine", 123.4);
-        var balance = new BalanceService(repo);
-        Double amount = 23.4;
+    void testGetBalanceAccountNotFound() {
+        double initialBalance = 1000.0;
+        accountRepository.createAccount("Orvyl", initialBalance);
 
-        Assertions.assertEquals(146.8, balance.credit(id, amount));
+        Assertions.assertThrows(AccountNotFoundException.class, () -> balanceService.getBalance("random id"));
     }
 
     @Test
-    void successfulTransfer() {
-        var repo = new AccountRepository();
-        String from = repo.createAccount("Loreine", 123.4);
-        String to = repo.createAccount("Adriana", 100.0);
-        var balance = new BalanceService(repo);
-        Double amount = 123.4;
+    void testDebit() throws InsufficientBalanceException, AccountNotFoundException {
+        double initialBalance = 1000.0;
+        String id = accountRepository.createAccount("Orvyl", initialBalance);
 
-        Assertions.assertEquals(223.4, balance.transfer(from, to, amount));
-    }
+        double debitedAmount = 50.0;
+        balanceService.debit(id, debitedAmount);
 
-    // I. Unsuccessful tests: account does not exist
-    // Since credit and debit use getBalance, and transfer uses credit and debit, it should cover unregistered accounts there din
-    // but to be sure diba regarding if the methods are called properly, etc
+        Double currentBalance = accountRepository.getAccount(id).getBalance();
 
-    @Test
-    void noAccountToGet() {
-        //same setup as the successfulGetBalance but with a fake id
-        var repo = new AccountRepository();
-        String faker = "Adriana";
-        var balance = new BalanceService(repo);
-
-        Assertions.assertNull(balance.getBalance(faker));
+        Assertions.assertEquals(initialBalance - debitedAmount, currentBalance);
     }
 
     @Test
-    void notExistingDebitAccount() {
-        var repo = new AccountRepository();
-        String faker = "Adriana";
-        var balance = new BalanceService(repo);
-        Double amount = 1.0;
+    void testDebitInsufficientBalance() {
+        double initialBalance = 1000.0;
+        String id = accountRepository.createAccount("Orvyl", initialBalance);
 
-        Assertions.assertNull(balance.debit(faker, amount));
+        double debitedAmount = 50_000.0;
+        Assertions.assertThrows(InsufficientBalanceException.class, () -> balanceService.debit(id, debitedAmount));
     }
 
     @Test
-    void notExistingCreditAccount() {
-        var repo = new AccountRepository();
-        String faker = "Adriana";
-        var balance = new BalanceService(repo);
-        Double amount = 1.0;
+    void testDebitAccountNotFound() {
+        double initialBalance = 1000.0;
+        String id = accountRepository.createAccount("Orvyl", initialBalance);
 
-        Assertions.assertNull(balance.credit(faker, amount));
+        double debitedAmount = 50_000.0;
+        Assertions.assertThrows(AccountNotFoundException.class, () -> balanceService.debit("random id", debitedAmount));
     }
 
     @Test
-    void notExistingTransferAccounts() {
-        var repo = new AccountRepository();
-        String from = "Loreine";
-        String to = "Adriana";
-        var balance = new BalanceService(repo);
-        Double amount = 0.0;
+    void testTransfer() throws InsufficientBalanceException, AccountNotFoundException {
+        double initialBalance = 1000.0;
+        String id0 = accountRepository.createAccount("Orvyl", initialBalance);
+        String id1 = accountRepository.createAccount("Eishi", initialBalance);
 
-        Assertions.assertNull(balance.transfer(from, to, amount));
+        double transferAmount = 50.0;
+        balanceService.transfer(id0, id1, transferAmount);
+
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(initialBalance - transferAmount, accountRepository.getAccount(id0).getBalance()),
+                () -> Assertions.assertEquals(initialBalance + transferAmount, accountRepository.getAccount(id1).getBalance())
+        );
     }
-
-    // II. Unsuccessful tests: zero amount
-    // While sa GCash app mismo it doesn't allow for zero amount transactions, para lang alam mo how it behaves
-    @Test
-    void zeroAmountDebit() {
-        var repo = new AccountRepository();
-        String id = repo.createAccount("Loreine", 123.4);
-        var balance = new BalanceService(repo);
-        Double amount = 0.0;
-
-        Assertions.assertEquals(123.4, balance.debit(id, amount));
-    }
-
-    @Test
-    void zeroAmountCredit() {
-        var repo = new AccountRepository();
-        String id = repo.createAccount("Loreine", 123.4);
-        var balance = new BalanceService(repo);
-        Double amount = 0.0;
-
-        Assertions.assertEquals(123.4, balance.credit(id, amount));
-    }
-
-    @Test
-    void zeroAmountTransfer() {
-        var repo = new AccountRepository();
-        String from = repo.createAccount("Loreine", 123.4);
-        String to = repo.createAccount("Adriana", 100.0);
-        var balance = new BalanceService(repo);
-        Double amount = 0.0;
-
-        Assertions.assertEquals(100.0, balance.transfer(from, to, amount));
-    }
-
-    // III. Unsuccessful tests: negative amount
-    @Test
-    void amountIsNegativeDebit() {
-        var repo = new AccountRepository();
-        String id = repo.createAccount("Loreine", 123.4);
-        var balance = new BalanceService(repo);
-        Double amount = -0.01;
-
-        Assertions.assertNull(balance.debit(id, amount));
-    }
-
-    @Test
-    void amountIsNegativeCredit() {
-        var repo = new AccountRepository();
-        String id = repo.createAccount("Loreine", 123.4);
-        var balance = new BalanceService(repo);
-        Double amount = -0.01;
-
-        Assertions.assertNull(balance.credit(id, amount));
-    }
-
-    @Test
-    void amountIsNegativeTransfer() {
-        var repo = new AccountRepository();
-        String from = repo.createAccount("Loreine", 123.4);
-        String to = repo.createAccount("Adriana", 100.0);
-        var balance = new BalanceService(repo);
-        Double amount = -0.01;
-
-        Assertions.assertNull(balance.transfer(from, to, amount));
-    }
-
-    //IV. Unsuccessful tests: other scenarios
-    @Test
-    void debitAmountIsBiggerThanBalance() {
-        var repo = new AccountRepository();
-        String id = repo.createAccount("Loreine", 123.4);
-        var balance = new BalanceService(repo);
-        Double amount = 567.8;
-
-        Assertions.assertNull(balance.debit(id, amount));
-    }
-
-    @Test
-    void transferAmountIsMoreThanBalance() {
-        var repo = new AccountRepository();
-        String from = repo.createAccount("Loreine", 123.4);
-        String to = repo.createAccount("Adriana", 100.0);
-        var balance = new BalanceService(repo);
-        Double amount = 1000.0;
-
-        Assertions.assertNull(balance.transfer(from, to, amount));
-    }
-
-    @Test
-    void transferringToSameAccount() {
-        var repo = new AccountRepository();
-        String id = repo.createAccount("Loreine", 123.4);
-        var balance = new BalanceService(repo);
-        Double amount = 1.0;
-
-        Assertions.assertNull(balance.transfer(id, id, amount));
-    }
-
 }

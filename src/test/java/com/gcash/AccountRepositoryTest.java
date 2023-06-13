@@ -4,6 +4,9 @@ package com.gcash;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class AccountRepositoryTest {
 
     @Test
@@ -16,7 +19,7 @@ public class AccountRepositoryTest {
 
         // Verify
         Assertions.assertEquals(1, repository.getNumberOfAccounts());
-        Assertions.assertEquals("Orvyl", repository.getAccount(accountId).name());
+        Assertions.assertEquals("Orvyl", repository.getAccount(accountId).getName());
         Assertions.assertNotNull(accountId);
     }
 
@@ -26,8 +29,8 @@ public class AccountRepositoryTest {
 
         String accountId = repository.createAccount("Orvyl", 89.9);
 
-        Assertions.assertEquals("Orvyl", repository.getAccount(accountId).name());
-        Assertions.assertEquals(89.9, repository.getAccount(accountId).balance());
+        Assertions.assertEquals("Orvyl", repository.getAccount(accountId).getName());
+        Assertions.assertEquals(89.9, repository.getAccount(accountId).getBalance());
         Assertions.assertNull(repository.getAccount("randomid"));
     }
 
@@ -64,12 +67,30 @@ public class AccountRepositoryTest {
     }
 
     @Test
-    void successfulNoRegisteredAccount() {
-        //Setup
-        var repo = new AccountRepository();
-        //can use var instead of the whole name nalang kasi Java can infer naman
+    void noRegisteredAccount() {
+        AccountRepository accountRepository = new AccountRepository();
 
-        //Kick and Verify
-        Assertions.assertTrue(repo.noRegisteredAccount());
+        Assertions.assertTrue(accountRepository.noRegisteredAccount());
+    }
+
+    @Test
+    void getAllAccountNames() {
+        AccountRepository accountRepository = new AccountRepository();
+        accountRepository.createAccount("Orvyl", 100.0);
+        accountRepository.createAccount("Eishi", 100.0);
+        accountRepository.createAccount("James", 100.0);
+        accountRepository.createAccount("Janet", 100.0);
+        accountRepository.createAccount("John", 100.0);
+
+        List<String> allAccountNames = accountRepository.getAllAccountNames();
+
+        List<String> expectedNames = new ArrayList<>();
+        expectedNames.add("Orvyl");
+        expectedNames.add("Eishi");
+        expectedNames.add("James");
+        expectedNames.add("Janet");
+        expectedNames.add("John");
+
+        Assertions.assertIterableEquals(expectedNames, allAccountNames);
     }
 }
